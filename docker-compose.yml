@@ -1,39 +1,33 @@
 version: '3'
 
 services:
-###> doctrine/doctrine-bundle ###
-  database:
-    image: postgres:${POSTGRES_VERSION:-13}-alpine
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB:-app}
-      # You should definitely change the password in production
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ChangeMe}
-      POSTGRES_USER: ${POSTGRES_USER:-symfony}
-    volumes:
-      - db-data:/var/lib/postgresql/data:rw
-      # You may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
-      # - ./docker/db/data:/var/lib/postgresql/data:rw
-###< doctrine/doctrine-bundle ###
+
+    db:
+        image: mysql
+        container_name: db_docker_symfony
+        restart: always
+        volumes:
+            - db-data:/Setup xampp/mysql
+        environment:
+            MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+        networks:
+            - dev
+
+    phpmyadmin:
+        image: phpmyadmin
+        container_name: phpmyadmin_docker_symfony
+        restart: always
+        depends_on: 
+            - db
+        ports:
+            - 8080:80
+        environment:
+            PMA_HOST: db
+        networks:
+            - dev
+
+networks:
+    dev:
 
 volumes:
-###> doctrine/doctrine-bundle ###
-  db-data:
-###< doctrine/doctrine-bundle ###
-  mysql:
-    image: mysql:5.7
-    container_name: mysql
-    command: ["--default-authentication-plugin=mysql_native_password"]
-    volumes:
-      - db_data:/var/lib/mysql
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: password0
-      MYSQL_DATABASE: symfony-demo
-      MYSQL_USER: symfony-demo
-      MYSQL_PASSWORD: symfony-demo
-    networks:
-      - mysql
-networks:
-  mysql:
-volumes:
-  db_data:
+    db-data:
