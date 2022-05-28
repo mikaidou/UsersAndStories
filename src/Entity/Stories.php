@@ -2,12 +2,24 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Core\Annotation\ApiFilter;
 use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\OrderFilter;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
 use App\Repository\StoriesRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 #[ApiResource()]
+#[ApiFilter(SearchFilter::class, properties: [
+    'title'=> SearchFilter::STRATEGY_PARTIAL,
+])]
+#[ApiFilter(OrderFilter::class, properties: ['title' => 'ASC']
+
+)]
 #[ORM\Entity(repositoryClass: StoriesRepository::class)]
+#[UniqueEntity('title')]
 class Stories
 {
     #[ORM\Id]
@@ -15,10 +27,14 @@ class Stories
     #[ORM\Column(type: 'integer')]
     private $id;
 
+    
     #[ORM\Column(type: 'string', length: 255)]
+    #[Assert\NotBlank]
+    #[Assert\Length(min: 20)]
     private $title;
 
     #[ORM\Column(type: 'string', length: 255)]
+    #[Assert\NotBlank]
     private $content;
 
     #[ORM\Column(type: 'datetime_immutable')]

@@ -1,4 +1,7 @@
 {
+    "andrefigueira/blog-article-faker": {
+        "version": "1.0.0"
+    },
     "api-platform/core": {
         "version": "2.6",
         "recipe": {

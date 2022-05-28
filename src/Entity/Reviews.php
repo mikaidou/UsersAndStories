@@ -3,10 +3,23 @@
 namespace App\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Core\Annotation\ApiFilter;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\OrderFilter;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
 use App\Repository\ReviewsRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
-#[ApiResource()]
+#[ApiResource(
+    itemOperations: ['get','delete', 'put'],
+    collectionOperations: ['get','post'],
+)]
+#[ApiFilter(SearchFilter::class, properties: [
+    'user_id'=> SearchFilter::STRATEGY_PARTIAL,
+])]
+#[ApiFilter(OrderFilter::class, properties: ['user_id' => 'ASC']
+
+)]
 #[ORM\Entity(repositoryClass: ReviewsRepository::class)]
 class Reviews
 {
@@ -16,6 +29,7 @@ class Reviews
     private $id;
 
     #[ORM\Column(type: 'string', length: 255)]
+    #[Assert\NotBlank]
     private $content;
 
     #[ORM\Column(type: 'datetime_immutable')]
@@ -30,6 +44,9 @@ class Reviews
 
     #[ORM\ManyToOne(targetEntity: Stories::class, inversedBy: 'reviews')]
     private $Stories;
+
+    #[ORM\Column(type: 'date_immutable', nullable: true)]
+    private $modifiedOn;
 
     public function getId(): ?int
     {
@@ -92,6 +109,18 @@ class Reviews
     public function setStories(?Stories $Stories): self
     {
         $this->Stories = $Stories;
+
+        return $this;
+    }
+
+    public function getModifiedOn(): ?\DateTimeImmutable
+    {
+        return $this->modifiedOn;
+    }
+
+    public function setModifiedOn(?\DateTimeImmutable $modifiedOn): self
+    {
+        $this->modifiedOn = $modifiedOn;
 
         return $this;
     }
