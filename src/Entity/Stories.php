@@ -27,11 +27,11 @@ class Stories
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private $modifiedOn;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private $slug;
 
     #[ORM\ManyToOne(targetEntity: Users::class, inversedBy: 'stories')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private $users;
 
     public function getId(): ?int
@@ -47,6 +47,18 @@ class Stories
     public function setTitle(string $title): self
     {
         $this->title = $title;
+
+        return $this;
+    }
+
+    public function getUsers(): ?Users
+    {
+        return $this->users;
+    }
+
+    public function setUsers(?Users $users): self
+    {
+        $this->users = $users;
 
         return $this;
     }

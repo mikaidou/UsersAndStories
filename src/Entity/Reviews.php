@@ -22,7 +22,7 @@ class Reviews
     private $createdAt;
 
     #[ORM\ManyToOne(targetEntity: Users::class, inversedBy: 'reviews')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private $Users;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
