@@ -25,33 +25,27 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 class Users
 {
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private $id;
+   use RessourceId;
 
     #[ORM\Column(type: 'string', length: 255)]
-    #[Assert\Length(min: 20)]
+    #[Assert\Length(max: 20)]
+    #[Assert\NotBlank]
+
     private $username;
 
     #[ORM\Column(type: 'string', length: 255)]
     private $role;
 
     #[ORM\OneToMany(mappedBy: 'users', targetEntity: Stories::class)]
-    private $stories;
+    private Collection $stories;
 
     #[ORM\OneToMany(mappedBy: 'Users', targetEntity: Reviews::class, orphanRemoval: true)]
-    private $reviews;
+    private Collection $reviews;
 
     public function __construct()
     {
         $this->stories = new ArrayCollection();
         $this->reviews = new ArrayCollection();
-    }
-
-    public function getId(): ?int
-    {
-        return $this->id;
     }
 
     public function getUsername(): ?string

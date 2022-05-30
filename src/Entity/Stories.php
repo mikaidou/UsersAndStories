@@ -2,57 +2,55 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Core\Annotation\ApiFilter;
 use ApiPlatform\Core\Annotation\ApiResource;
-use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\OrderFilter;
-use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
 use App\Repository\StoriesRepository;
-use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
+use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
-#[ApiResource()]
-#[ApiFilter(SearchFilter::class, properties: [
-    'title'=> SearchFilter::STRATEGY_PARTIAL,
-])]
-#[ApiFilter(OrderFilter::class, properties: ['title' => 'ASC']
-
-)]
 #[ORM\Entity(repositoryClass: StoriesRepository::class)]
+#[ApiResource(
+    normalizationContext:['groups' => ['read:collection']],
+    itemOperations: [
+        'get','put','delete' => [
+            'normalization_context' => ['groups' => ['read:collection',
+             'read:item']]
+        ]
+
+    ]
+)]
 #[UniqueEntity('title')]
+
 class Stories
 {
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private $id;
+    use RessourceId;
+    use Timestampable;
 
-    
     #[ORM\Column(type: 'string', length: 255)]
+    #[Groups(['read:collection'])]
     #[Assert\NotBlank]
-    #[Assert\Length(min: 20)]
     private $title;
 
     #[ORM\Column(type: 'string', length: 255)]
+    #[Groups(['read:collection'])]
+    private $slug;
+
+    #[ORM\Column(type: 'string', length: 255)]
+    #[Groups(['read:item'])]
     #[Assert\NotBlank]
     private $content;
 
-    #[ORM\Column(type: 'datetime_immutable')]
-    private $createdAt;
-
-    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    private $modifiedOn;
-
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private $slug;
-
     #[ORM\ManyToOne(targetEntity: Users::class, inversedBy: 'stories')]
-    #[ORM\JoinColumn(nullable: true)]
-    private $users;
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Users $users;
 
-    public function getId(): ?int
+    #[ORM\OneToMany(targetEntity: Reviews::class, mappedBy:'stories')]
+    private $reviews;
+
+    public function __construct()
     {
-        return $this->id;
+      $this->createdAt =new \DateTimeImmutable();
     }
 
     public function getTitle(): ?string
@@ -67,14 +65,14 @@ class Stories
         return $this;
     }
 
-    public function getUsers(): ?Users
+    public function getSlug(): ?string
     {
-        return $this->users;
+        return $this->slug;
     }
 
-    public function setUsers(?Users $users): self
+    public function setSlug(string $slug): self
     {
-        $this->users = $users;
+        $this->slug = $slug;
 
         return $this;
     }
@@ -91,38 +89,14 @@ class Stories
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getUsers(): ?Users
     {
-        return $this->createdAt;
+        return $this->users;
     }
 
-    public function setCreatedAt(\DateTimeImmutable $createdAt): self
+    public function setUsers(?Users $users): self
     {
-        $this->createdAt = $createdAt;
-
-        return $this;
-    }
-
-    public function getModifiedOn(): ?\DateTimeImmutable
-    {
-        return $this->modifiedOn;
-    }
-
-    public function setModifiedOn(?\DateTimeImmutable $modifiedOn): self
-    {
-        $this->modifiedOn = $modifiedOn;
-
-        return $this;
-    }
-
-    public function getSlug(): ?string
-    {
-        return $this->slug;
-    }
-
-    public function setSlug(string $slug): self
-    {
-        $this->slug = $slug;
+        $this->users = $users;
 
         return $this;
     }

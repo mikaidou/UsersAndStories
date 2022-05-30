@@ -3,54 +3,44 @@
 namespace App\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
-use ApiPlatform\Core\Annotation\ApiFilter;
-use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\OrderFilter;
-use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
 use App\Repository\ReviewsRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
-#[ApiResource(
-    itemOperations: ['get','delete', 'put'],
-    collectionOperations: ['get','post'],
-)]
-#[ApiFilter(SearchFilter::class, properties: [
-    'user_id'=> SearchFilter::STRATEGY_PARTIAL,
-])]
-#[ApiFilter(OrderFilter::class, properties: ['user_id' => 'ASC']
-
-)]
 #[ORM\Entity(repositoryClass: ReviewsRepository::class)]
+#[ApiResource(
+    normalizationContext:['groups' => ['read:collection']],
+    itemOperations: [
+        'get','put','delete' => [
+            'normalization_context' => ['groups' => ['read:collection', 'read:item']]
+        ]
+    ]
+)]
 class Reviews
 {
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private $id;
+    use RessourceId;
+    use Timestampable;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: 'text')]
+    #[Groups(['read:collection'])]
     #[Assert\NotBlank]
     private $content;
-
-    #[ORM\Column(type: 'datetime_immutable')]
-    private $createdAt;
-
-    #[ORM\ManyToOne(targetEntity: Users::class, inversedBy: 'reviews')]
-    #[ORM\JoinColumn(nullable: true)]
-    private $Users;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
     private $isValidated;
 
+    #[ORM\ManyToOne(targetEntity: Users::class, inversedBy: 'reviews')]
+    #[ORM\JoinColumn(nullable: false)]
+    private $Users;
+
     #[ORM\ManyToOne(targetEntity: Stories::class, inversedBy: 'reviews')]
-    private $Stories;
+    #[Groups(['read:item'])]
+    private ?Stories $Stories;
 
-    #[ORM\Column(type: 'date_immutable', nullable: true)]
-    private $modifiedOn;
-
-    public function getId(): ?int
+    public function __construct()
     {
-        return $this->id;
+      $this->createdAt =new \DateTimeImmutable();
     }
 
     public function getContent(): ?string
@@ -61,18 +51,6 @@ class Reviews
     public function setContent(string $content): self
     {
         $this->content = $content;
-
-        return $this;
-    }
-
-    public function getCreatedAt(): ?\DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
-
-    public function setCreatedAt(\DateTimeImmutable $createdAt): self
-    {
-        $this->createdAt = $createdAt;
 
         return $this;
     }
@@ -113,15 +91,4 @@ class Reviews
         return $this;
     }
 
-    public function getModifiedOn(): ?\DateTimeImmutable
-    {
-        return $this->modifiedOn;
-    }
-
-    public function setModifiedOn(?\DateTimeImmutable $modifiedOn): self
-    {
-        $this->modifiedOn = $modifiedOn;
-
-        return $this;
-    }
 }
